@@ -1,0 +1,55 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "heroAnima",
+  "_objFlags": 0,
+  "_rawFiles": null,
+  "_duration": 0.8333333333333334,
+  "sample": 30,
+  "speed": 1,
+  "wrapMode": 2,
+  "curveData": {
+    "comps": {
+      "cc.Sprite": {
+        "spriteFrame": [
+          {
+            "frame": 0.03333333333333333,
+            "value": {
+              "__uuid__": "a19a9254-3a23-447b-beb6-8128fedd5faa"
+            }
+          },
+          {
+            "frame": 0.2,
+            "value": {
+              "__uuid__": "b5754564-745f-4020-a943-157b4c811cd3"
+            }
+          },
+          {
+            "frame": 0.3333333333333333,
+            "value": {
+              "__uuid__": "00749d70-7c7c-416d-839d-c716d4c26bd2"
+            }
+          },
+          {
+            "frame": 0.5,
+            "value": {
+              "__uuid__": "6f9c8f26-0cad-431c-9ccb-afb4b9bc369e"
+            }
+          },
+          {
+            "frame": 0.6666666666666666,
+            "value": {
+              "__uuid__": "e364ccb8-186e-4423-ac1a-84762a2d59c9"
+            }
+          },
+          {
+            "frame": 0.8,
+            "value": {
+              "__uuid__": "6eee92ab-3ad7-4d2a-a461-cd167d70333e"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "events": []
+}
