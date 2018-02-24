@@ -1,9 +1,6 @@
-// var up = 'up';
-// var down = 'down';
-// var left = 'left';
-// var right = 'right';
+var config = require("Config");
 
-var speed = 2;
+var speed = config.speed;
 
 cc.Class({
     extends: cc.Component,
@@ -19,12 +16,25 @@ cc.Class({
         
     },
 
+    createMonster:function(url,monster){
+        var self = this;
+        cc.loader.loadRes(url,function(err,perfab){
+            monster = cc.instantiate(perfab);
+            cc.log("monster==============",monster);
+            monster.parent = self.map.node;
+            var pos = self.barriers.getPositionAt(cc.p(10,6));
+            monster.setPosition(pos);
+            //待优化
+            self.blinky = monster;
+        });
+    },
+
     // LIFE-CYCLE CALLBACKS:
     onLoad () {
         this.score = 0;
         this.player = this.map.node.getChildByName('player');
         var self = this;
-        this.direction = 'stop';
+        this.direction = config.stop;
         cc.eventManager.addListener({
             event:cc.EventListener.KEYBOARD,
             onKeyPressed:function(keyCode,event){
@@ -32,33 +42,29 @@ cc.Class({
                 cc.log("keyCode!",keyCode);
                 switch(keyCode){
                     case cc.KEY.w:
-                        // newTile.y -= 1;
                         cc.log("keyCode! up==============");
-                        self.direction = 'up';
+                        self.direction = config.up;
                         break;
                     case cc.KEY.s:
-                        // newTile.y += 1;
-                        self.direction = 'down';
+                        self.direction = config.down;
                         break;    
                     case cc.KEY.a:
-                        // newTile.x -= 1;
-                        self.direction = 'left';
+                        self.direction = config.left;
                         break;      
                     case cc.KEY.d:
-                        // newTile.x += 1;
-                        self.direction = 'right';
+                        self.direction = config.right;
                         break;  
                     default:
                         return;
                 }
-
-                // self.tryMoveToNewTile(newTile);
             }
         },self.node);
     },
 
     start () {
         this.loadMap();
+        this.blinky = this.createMonster('Blinky',this.blinky);
+        // cc.log("blinky==============",blinky);
     },
 
     //移动到新的位置
@@ -74,10 +80,6 @@ cc.Class({
         this.tryCatchStar(newTile);
         this.playerTile = newTile;
         return true;
-        // this.updatePlayerPos();
-        // if(cc.pointEqualToPoint(this.playerTile,this.endTile)){
-        //     cc.log('succeed');
-        // }
     },
 
     //尝试移除星星
@@ -112,7 +114,8 @@ cc.Class({
         var mapSize = this.map.node.getContentSize();
         var tileSize = this.tiledMap.getTileSize();
         var x = Math.floor(posInPixel.x / tileSize.width);
-        var y = Math.floor((mapSize.height - posInPixel.y) / tileSize.height);
+        var y = Math.floor((mapSize.height - posInPixel.y) / tileSize.height) -1;
+
         cc.log("posInPixel",posInPixel.x);
         cc.log("mapSize",mapSize.height);
         cc.log("y",y);
@@ -125,37 +128,90 @@ cc.Class({
     },
 
     update (dt) {
-        cc.log('this.direction',this.direction);
-        switch(this.direction){
-            case 'up':
-                if(this.tryMoveToNewTile(this.getTilePos(cc.p(this.player.x,this.player.y + speed)))){
-                    this.player.y += speed;
-                }
-            case 'down':
-                if(this.tryMoveToNewTile(this.getTilePos(cc.p(this.player.x,this.player.y - speed)))){
-                    this.player.y -= speed;
-                }
-            case 'left':
-                var p = this.getTilePos(cc.p(this.player.x - speed,this.player.y));
-                if(this.tryMoveToNewTile(cc.p(2,10))){
-                    cc.log('left==============');
-                    this.player.x -= speed;
-                }
-            case 'right':
-                if(this.tryMoveToNewTile(this.getTilePos(cc.p(this.player.x + speed,this.player.y)))){
-                    this.player.x += speed;
-                }
-            default:
-        }
+        this.move(this.direction,this.player);
 
+        this.move(this.direction,this.blinky);
+    },
+
+    move:function(direction,player){
+        switch(direction){
+            case config.up:
+                var p = this.getTilePos(cc.p(player.x,player.y + speed));
+                if(this.tryChangeDirection(cc.p(p.x,p.y))){
+                    player.y += speed;
+                }
+                else{
+                    var p = this.getTilePos(cc.p(player.x ,player.y));
+                    this.stopPlayer(cc.p(p.x,p.y));
+                }
+                break;
+            case config.down:
+                var p = this.getTilePos(cc.p(player.x,player.y - speed));
+                if(this.tryChangeDirection(cc.p(p.x,p.y + 1)))
+                {
+                    player.y -= speed;
+                }
+                else
+                {
+                    var p = this.getTilePos(cc.p(player.x ,player.y));
+                    this.stopPlayer(cc.p(p.x,p.y+1));
+                }
+                break;
+            case config.left:
+                var p = this.getTilePos(cc.p(player.x - speed,player.y));
+                if(this.tryChangeDirection(cc.p(p.x,p.y)))
+                {
+                    cc.log('left==============pred',player.x);
+                    player.x = player.x - speed;
+                }
+                else
+                {
+                    var p = this.getTilePos(cc.p(player.x ,player.y));
+                    this.stopPlayer(cc.p(p.x,p.y));
+                }
+                break;
+            case config.right:
+                var p = this.getTilePos(cc.p(player.x + speed,player.y));
+                if(this.tryChangeDirection(cc.p(p.x+1,p.y)))
+                {
+                    player.x += speed;
+                }
+                else
+                {
+                    var p = this.getTilePos(cc.p(player.x ,player.y));
+                    this.stopPlayer(cc.p(p.x+1,p.y));
+                }
+                break;
+            default:
+                
+        }
+    },
+
+    //停止
+    stopPlayer:function(title){
+        this.direction = config.stop;
+        this.playerTile = title;
+        this.updatePlayerPos();
     },
 
     /**
      * 根据按键尝试改变方向
      */
-    tryChangeDirection:function () {
-        
+    tryChangeDirection:function (newTile) {
+        var mapSize = this.tiledMap.getMapSize();
+        if(newTile.x < 0 || newTile.x >= mapSize.width)return false;
+        if(newTile.y < 0 || newTile.x >= mapSize.height)return false;
+
+        if(this.barriers.getTileGIDAt(newTile)){
+            cc.log("This way is Blocked!=== x",newTile.x);
+            cc.log("This way is Blocked!=== y",newTile.y);
+            return false;
+        }
+        this.tryCatchStar(newTile);
+        return true;
     },
+
+
 
 
 });
